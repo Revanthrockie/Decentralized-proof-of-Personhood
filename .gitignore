@@ -1,0 +1,24 @@
+# Environment files — never commit these
+.env
+.env.local
+.env.*.local
+
+# Python
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+__pycache__/
+
+# Node
+frontend/node_modules/
+contracts/node_modules/
+frontend/dist/
+
+# Hardhat
+contracts/artifacts/
+contracts/cache/
+contracts/src/artifacts/
+contracts/src/cache/
+
+# OS
+.DS_Store
