@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Proof of Personhood — Seminar Explainer v2</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1f2430;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .kicker {
+    color: #4f46e5;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-size: 10pt;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .titlepage { padding-top: 38mm; page-break-after: always; }
+  .titlepage h1 {
+    font-size: 30pt;
+    color: #1e2259;
+    margin: 0 0 16px;
+    line-height: 1.15;
+  }
+  .titlepage .sub {
+    font-style: italic;
+    color: #4b5370;
+    font-size: 12.5pt;
+    max-width: 520px;
+    margin-bottom: 30px;
+  }
+  .titlepage .meta { font-size: 10.5pt; color: #444; }
+  .titlepage .meta b { color: #1e2259; }
+  .titlepage .version-note {
+    margin-top: 60px;
+    font-size: 9.5pt;
+    color: #6b7280;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    max-width: 520px;
+  }
+
+  h2 {
+    font-size: 15pt;
+    color: #3730a3;
+    border-bottom: 2px solid #3730a3;
+    padding-bottom: 5px;
+    margin-top: 30px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #1e2259;
+    margin-top: 20px;
+    margin-bottom: 6px;
+  }
+  p { margin: 7px 0; text-align: justify; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+
+  code {
+    background: #eef0fb;
+    color: #3730a3;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 9.5pt;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.8pt; margin: 10px 0 16px; }
+  th, td { border: 1px solid #c7cbe0; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #e0e4fb; color: #1e2259; }
+  tr:nth-child(even) td { background: #f7f8fd; }
+
+  .pitch {
+    background: #f1f2fb;
+    border-left: 4px solid #4f46e5;
+    padding: 10px 14px;
+    font-style: italic;
+    margin: 10px 0;
+    font-size: 10pt;
+    color: #444;
+  }
+  .quote-block {
+    background: #fff;
+    border: 1px solid #c7cbe0;
+    border-left: 4px solid #4338ca;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 10.3pt;
+  }
+  .analogy {
+    background: #eef4ff;
+    border: 1px solid #b9d0f7;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  .analogy .label { color: #1d4ed8; font-weight: 700; font-size: 9pt; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+
+  .upfront {
+    background: #fff6ea;
+    border: 1px solid #f0c48a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  .upfront .label { color: #b45309; font-weight: 700; font-size: 9pt; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+
+  .qa {
+    border: 1px solid #d8dae8;
+    border-radius: 6px;
+    padding: 9px 13px;
+    margin: 9px 0;
+    font-size: 10pt;
+    background: #fff;
+  }
+  .qa .q { font-weight: 700; color: #1e2259; margin-bottom: 3px; }
+
+  .toc { font-size: 10pt; }
+  .toc li { margin-bottom: 5px; }
+
+  .footer-note {
+    margin-top: 36px;
+    font-size: 9pt;
+    color: #777;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+    font-style: italic;
+  }
+
+  .badge-new {
+    display: inline-block;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== TITLE PAGE ===================== -->
+<div class="titlepage">
+  <div class="kicker">Seminar Explainer &amp; Viva Prep — v2</div>
+  <h1>Decentralized Proof of Personhood</h1>
+  <div class="sub">A plain-language guide to everything we built, how it works, why we added
+  a second (voice) liveness factor and an anti-Sybil face check, and how to defend every
+  piece of it in front of a panel.</div>
+  <div class="meta">
+    <b>VTU B.E. Project</b> &middot; SKIT, 2025&ndash;26<br>
+    <b>Team 14</b> &mdash; Revanth, Shashank, Ajay, Chinmayee
+  </div>
+  <div class="version-note">
+    This supersedes the earlier <code>Seminar-Explainer.pdf</code>, written when the system
+    had only one liveness factor (face/gesture) and no duplicate-identity check. Everything
+    in that version is still accurate background reading; this document folds in what changed
+    since: the voice challenge, the anti-Sybil face-duplicate check, the test suite, and hosting.
+  </div>
+</div>
+
+<!-- ===================== CONTENTS ===================== -->
+<h2>Contents</h2>
+<ol class="toc">
+  <li>The 60-second pitch</li>
+  <li>What problem are we actually solving?</li>
+  <li>The big picture — three services, two liveness factors</li>
+  <li>Concepts you must understand</li>
+  <li>Why we added a second (voice) factor — the actual story</li>
+  <li>Why the anti-Sybil face check, instead of just letting wallets mint freely</li>
+  <li>Walking through the app, step by step</li>
+  <li>A tour of every file</li>
+  <li>What it can't do yet — know these cold</li>
+  <li>Ideas for future work</li>
+  <li>Anticipated questions and how to answer them</li>
+  <li>Where it's hosted</li>
+  <li>Glossary</li>
+</ol>
+
+<!-- ===================== 1 ===================== -->
+<h2>1. The 60-second pitch</h2>
+<div class="pitch">
+"Online, it's hard to prove you're a real, unique human without handing over your Aadhaar or
+your face to a company's server. Our project lets someone prove they're a unique human using
+only their own device — a face-tracking model runs entirely in their browser to check they
+performed a random physical action like blinking twice, and then they read a randomly chosen
+sentence out loud, transcribed live in the browser, as a second independent liveness factor.
+A blockchain then records that proof as a token in their crypto wallet that can never be sold,
+transferred, or duplicated — and critically, the system also recognizes if the <i>same face</i>
+tries to register a second token under a different wallet, and refuses. One human, one token,
+forever. No company holds their video, their photo, their audio, or their identity — the backend
+only ever sees a wallet address, a derived face descriptor, and a speech transcript."
+</div>
+
+<!-- ===================== 2 ===================== -->
+<h2>2. What problem are we actually solving?</h2>
+<p>This category of problem is called <b>Sybil resistance</b> — stopping one person from
+pretending to be many people. <b>Proof of Personhood</b> is the general name for systems that
+answer "is this a unique real human?" without a government ID. Well-known examples are
+<b>Worldcoin / World ID</b> (iris-scanning hardware orb) and <b>Humanity Protocol</b>.</p>
+<p>Our project is a lightweight, no-special-hardware version: a laptop/phone webcam plus a
+free on-device face model, now paired with a second factor — the device microphone plus live
+browser speech transcription — and a check that the <i>same person</i> isn't quietly collecting
+more than one token.</p>
+
+<!-- ===================== 3 ===================== -->
+<h2>3. The big picture — three services, two liveness factors</h2>
+<p>The project still has exactly three independently-run pieces of software — that part hasn't
+changed. What's new is that "verify" is no longer one check, it's a short pipeline of two
+independent liveness factors plus a duplicate-identity check, all before the backend will mint.</p>
+
+<table>
+<tr><th>Piece</th><th>Technology</th><th>Its one job</th></tr>
+<tr><td>Smart contract</td><td>Solidity, Polygon Amoy</td>
+<td>Permanently record "this wallet is verified"; physically block every transfer after mint.</td></tr>
+<tr><td>Backend</td><td>Python, FastAPI</td>
+<td>Only party allowed to mint. Issues both challenges, re-scores the voice transcript itself,
+runs the face-duplicate check, pins metadata to IPFS, signs the mint transaction.</td></tr>
+<tr><td>Frontend</td><td>React, running in the browser</td>
+<td>Connect wallet, run face-tracking <i>and</i> live speech transcription, compute the face
+descriptor, show the final token.</td></tr>
+</table>
+
+<div class="analogy">
+<div class="label">Updated analogy</div>
+It's still a nightclub with a wristband (the contract) and a bouncer (the backend). What's new:
+the bouncer now asks for two forms of ID instead of one — "do the thing" <i>and</i> "say the
+thing" — and keeps a (privacy-preserving) sketch of everyone's face so the same person can't
+come back through a side door with a different name and get a second wristband.
+</div>
+
+<!-- ===================== 4 ===================== -->
+<h2>4. Concepts you must understand</h2>
+<p>Sections 4.1–4.9 (blockchain/wallet/testnet, smart contracts/gas, NFTs/ERC-721, soulbound
+tokens/EIP-5192, liveness detection, MediaPipe/blendshapes, IPFS/Pinata, FastAPI/Web3.py/ethers.js,
+<code>.env</code> files) are unchanged from the original explainer — read that document for those.
+Here are the concepts that are <b>new</b> in this version.</p>
+
+<h3>4.10 Voice liveness via challenge-response<span class="badge-new">new</span></h3>
+<p>The same challenge-response idea used for "blink twice" extends naturally to speech: the
+backend picks one of 8 short, varied sentences at random (e.g. <i>"Blockchain technology enables
+secure and transparent digital identity."</i>) and the user must read that exact sentence aloud,
+right now. A pre-recorded clip of someone else's voice, or a generic answer, won't match the
+<i>specific, unpredictable</i> sentence that was just issued.</p>
+
+<h3>4.11 The Web Speech API<span class="badge-new">new</span></h3>
+<p>Chrome (and other Chromium browsers) expose a built-in <code>SpeechRecognition</code>
+JavaScript API that transcribes microphone audio to text live, in the browser, with no library to
+install. We use it instead of running a speech-to-text model ourselves — it needs an internet
+connection and only works reliably in Chromium browsers, which is why the UI falls back to a
+manual "type what you said" box if it's unavailable, so a demo never gets stuck.</p>
+
+<h3>4.12 Transcript matching (and why the backend re-scores it)<span class="badge-new">new</span></h3>
+<p>The frontend shows a live "match %" meter using a simple word-overlap formula (a
+<a href="#dice">Dice coefficient</a>, see glossary) purely so the user gets instant feedback while
+speaking. That number is <i>never trusted for the actual security decision</i> — when the
+transcript is submitted, the backend independently re-computes a similarity score (Python's
+<code>difflib.SequenceMatcher</code>, a character-level fuzzy-match ratio) between what was
+submitted and the exact sentence <i>it</i> issued, and only proceeds if that score is at least
+<code>AUDIO_MATCH_THRESHOLD</code> (0.65, i.e. 65% similar) — a classic "never trust the
+client" defensive pattern.</p>
+
+<h3>4.13 Geometric face descriptors &amp; cosine similarity<span class="badge-new">new</span></h3>
+<p>While the face-tracking model is already running for the gesture challenge, it produces 478
+(x, y, z) landmark points per frame. We pick 10 stable ones (eye corners, nose tip, mouth corners,
+chin, forehead, cheeks, brow-bridge) and compute every pairwise distance between them — 45
+numbers total — normalized by the distance between the two eye corners, so the vector doesn't
+change just because someone leaned closer to the camera. This is a <b>geometric descriptor</b>,
+a classic pre-deep-learning face-recognition technique: simple, fully explainable, and good enough
+to answer "is this roughly the same face as before?", though not as discriminating as a modern
+deep embedding model (see Section 9).</p>
+<p>Two descriptors are compared with <b>cosine similarity</b> — a standard way to measure how
+similar two numeric vectors are regardless of their scale, producing a score from &minus;1 to 1
+(in practice 0 to 1 here). A score at or above <code>FACE_MATCH_THRESHOLD</code> (0.93) is
+treated as "the same face."</p>
+
+<h3>4.14 Sybil resistance, at the wallet level vs. the human level<span class="badge-new">new</span></h3>
+<p>The original design only proved "this <i>wallet</i> passed a liveness check" — nothing stopped
+one human from doing that twice with two wallets. This version adds a second layer: an anti-Sybil
+check at the <i>human</i> level, using the face descriptor as a (imperfect, prototype-grade) stand-in
+for "the same person," independent of which wallet they're connected with.</p>
+
+<!-- ===================== 5 ===================== -->
+<h2>5. Why we added a second (voice) factor — the actual story</h2>
+<p>This is worth being able to say in your own words, because it's exactly the kind of "why did
+you do that" question a panel asks:</p>
+<ul>
+<li><b>Defense in depth.</b> Any single liveness signal has a plausible attack. A high-quality
+deepfake video or a screen replay can, in principle, fool blendshape-threshold gesture detection.
+Requiring a <i>second, independent</i> channel — audio, with its own separate attack surface
+(you'd now need a deepfake that also perfectly lip-syncs an unpredictable sentence, live, in
+real time) — meaningfully raises the bar, even though neither factor alone is unbreakable.</li>
+<li><b>It was explicitly in our own "future work" list.</b> The original Phase 1 report's
+literature survey centers on text-dependent / text-prompted speaker verification (RSR2015,
+RedDots — see the References document), and our own "future enhancements" section named
+stronger, multi-signal liveness as a direction. This is that direction, actually built.</li>
+<li><b>It's cheap to add well.</b> Because the browser already exposes microphone access and
+(in Chrome) free live transcription, we could add a whole second modality with zero new paid
+services and zero heavy ML dependencies on our own backend — just <code>difflib</code>, which
+is in Python's standard library.</li>
+</ul>
+<div class="upfront">
+<div class="label">Be upfront about this if asked</div>
+We are <i>not</i> doing voice-biometric speaker identification (matching a voiceprint to a specific
+registered person) — we're only checking that the live microphone audio spells out the specific
+sentence we just issued. That proves "a live human spoke this, right now," not "this is
+unmistakably the same voice as last time." If pressed on it: "that's a correct observation — ours is
+a liveness check, not a speaker-recognition system; combining the two would be natural future
+work."
+</div>
+
+<!-- ===================== 6 ===================== -->
+<h2>6. Why the anti-Sybil face check, instead of just letting wallets mint freely</h2>
+<p>We were directly asked, mid-project, "can a wallet mint more than once, or at least let me
+get my token again some other way?" The honest engineering answer we settled on:</p>
+<ul>
+<li><b>Allowing repeat minting would be a regression, not a feature.</b> The single property this
+whole project exists to demonstrate is "one human, one token." A bypass for that — even a
+"just for testing" one — would directly contradict the thing being graded.</li>
+<li><b>So we solved the <i>real</i> underlying need instead.</b> What was actually missing wasn't
+"let me mint twice," it was "stop a <i>different</i> wallet from quietly minting a second token for
+the same person" — which is the harder, more valuable half of Sybil resistance, and something
+the original design explicitly left as an open limitation (see the original explainer's Q&amp;A:
+<i>"Nothing stops a person from owning multiple wallets and getting one token per
+wallet today"</i> — that sentence is no longer true in this version, within the limits of our
+lightweight face descriptor).</li>
+<li><b>Rehearsal is still easy without weakening the real guarantee.</b> Switching MetaMask test
+wallets between rehearsal runs already works (each new wallet is a fresh on-chain slate); a
+dev-only, off-by-default endpoint (<code>ALLOW_DEMO_RESET=true</code> +
+<code>POST /dev/reset-face-registry</code>) clears just the local face registry for repeat
+rehearsals, without touching the blockchain and without existing anywhere near the real
+demo's default configuration.</li>
+</ul>
+
+<!-- ===================== 7 ===================== -->
+<h2>7. Walking through the app, step by step</h2>
+<p>Steps 1–2 (connect wallet, check <code>isVerified</code>) and the mechanics of the gesture
+challenge itself are unchanged from the original explainer. Picking up from where the gesture
+challenge completes:</p>
+
+<h3>Step — gesture challenge completes</h3>
+<p>Instead of immediately calling the backend, the frontend now holds onto two things from that
+moment: which gesture challenge was completed, and the geometric face descriptor computed from
+the last clearly-visible frame (<code>frontend/src/lib/faceEmbedding.js</code>). The app then
+moves to a new "Voice" step instead of minting immediately.</p>
+
+<h3>Step — voice challenge</h3>
+<p>The frontend fetches a random sentence from <code>GET /challenge/audio</code>, the user reads
+it aloud, and (in Chrome) <code>SpeechRecognition</code> transcribes it live with a running
+match-percentage meter. The user hits "Submit &amp; Mint."</p>
+
+<h3>Step — one combined verification request</h3>
+<p>Only now does the frontend call <code>POST /verify</code> — bundling the wallet address, which
+gesture challenge was done, the audio sentence id + transcript, and the face descriptor, all in one
+request. The backend, in order:</p>
+<ol>
+<li>Checks <code>isVerified</code> on-chain (unchanged from before).</li>
+<li>Re-scores the transcript against the sentence <i>it</i> issued; rejects (HTTP 400) below 65%
+match.</li>
+<li>Compares the face descriptor against every descriptor already on file; if a <i>different</i>
+wallet's descriptor is &ge;93% similar, rejects (HTTP 409) with a clear message naming the
+already-registered wallet.</li>
+<li>Only if both checks pass: pins metadata to IPFS, mints the Soulbound Token, and registers this
+descriptor against this wallet for future checks.</li>
+</ol>
+
+<!-- ===================== 8 ===================== -->
+<h2>8. A tour of every file</h2>
+<p>Unchanged files (<code>SoulboundToken.sol</code>, <code>deploy.js</code>,
+<code>hardhat.config.js</code>, <code>WalletConnect.jsx</code>,
+<code>VerificationBadge.jsx</code>) are covered in the original explainer. New/changed files:</p>
+<table>
+<tr><th>File</th><th>What it is</th></tr>
+<tr><td><code>backend/main.py</code></td><td>Now five endpoints instead of three: health check,
+<code>GET /challenge</code> (visual), <code>GET /challenge/audio</code> (voice), <code>POST
+/verify</code> (re-scores audio, runs the face-dedup check, mints), plus two dev/rehearsal-only
+endpoints behind <code>ALLOW_DEMO_RESET</code>.</td></tr>
+<tr><td><code>backend/tests/test_main.py</code></td><td>21 pytest cases covering the text-similarity
+scorer, the cosine-similarity scorer, the full <code>/verify</code> flow, the anti-Sybil block/allow
+cases, and the dev endpoints — all run against a temporary SQLite file with real network/blockchain
+calls forced off.</td></tr>
+<tr><td><code>backend/pop_registry.db</code></td><td>The local face-descriptor registry (SQLite,
+one row per wallet). Runtime data only — git-ignored, never committed, contains no images.</td></tr>
+<tr><td><code>frontend/src/components/AudioChallengeRecorder.jsx</code></td><td>The new voice
+challenge screen: fetches the sentence, drives <code>SpeechRecognition</code>, shows the live
+match meter, falls back to manual text entry, and is the component that actually calls
+<code>POST /verify</code> (moved here from the gesture component, since voice is now the last
+step before minting).</td></tr>
+<tr><td><code>frontend/src/lib/faceEmbedding.js</code></td><td>Turns MediaPipe's 478 landmarks
+into the 45-number geometric descriptor described in Section 4.13.</td></tr>
+<tr><td><code>frontend/src/lib/textSimilarity.js</code></td><td>The client-side "match %" meter
+only — a word-overlap (Dice) score, cosmetic/UX only, never the security decision.</td></tr>
+<tr><td><code>render.yaml</code>, <code>backend/runtime.txt</code>,
+<code>DEPLOYMENT.md</code></td><td>Free hosting: a Render "Blueprint" for the backend and a
+step-by-step guide for both services (Section 12).</td></tr>
+</table>
+
+<!-- ===================== 9 ===================== -->
+<h2>9. What it can't do yet — know these cold</h2>
+<p>Everything in the original explainer's limitations section still applies (deepfake/screen-replay
+risk, centralized minter trust, no rate-limiting). What's new or changed:</p>
+<ul>
+<li><b>The face descriptor is a geometric sketch, not a deep embedding.</b> It's explainable and
+cheap, but less discriminating than a trained model like FaceNet/ArcFace — similar-looking
+relatives, identical twins, or unusual lighting/pose could plausibly cross the 93% threshold
+incorrectly in either direction. This is a deliberate prototype-scope trade-off, named as such.</li>
+<li><b>Voice liveness proves "a human spoke this sentence now," not "this is the same voice as
+last time."</b> It is not speaker-recognition (Section 5's "be upfront" box).</li>
+<li><b>Web Speech API needs Chrome and an internet connection.</b> Other browsers, or a venue
+with no wifi, fall back to a lower-assurance manual-typing path.</li>
+<li><b>The free-tier host for the backend doesn't guarantee permanent disk persistence.</b> See
+Section 12 — the face registry can be reset by a Render cold-start cycle on the free plan.</li>
+<li><b>Still no rate-limiting or signed attestations</b> — unchanged limitations from the original
+design; see Section 10.</li>
+</ul>
+
+<!-- ===================== 10 ===================== -->
+<h2>10. Ideas for future work</h2>
+<p>Carried over from the original explainer (signed attestations, deeper anti-spoofing, mainnet
+migration, rate limiting, contract test suite, a real-world use-case demo), plus new ones specific to
+this version:</p>
+<ol>
+<li><b>Swap the geometric face descriptor for a deep embedding model</b> (FaceNet/ArcFace,
+run on-device via ONNX/TensorFlow.js) for materially stronger duplicate-detection accuracy.</li>
+<li><b>Add real voice-biometric speaker verification</b> on top of the current liveness-only check,
+so the system can also answer "is this specifically the same registered voice."</li>
+<li><b>Offline speech-to-text</b> (e.g. a small on-device Vosk model) to remove the Chrome +
+internet dependency for the voice challenge.</li>
+<li><b>Move the face registry to a real hosted database</b> (Postgres) so it survives host
+cold-starts, instead of a single SQLite file.</li>
+</ol>
+
+<!-- ===================== 11 ===================== -->
+<h2>11. Anticipated questions and how to answer them</h2>
+
+<div class="qa"><div class="q">Q: Why two liveness factors instead of one?</div>
+A: Defense in depth — a convincing attack on gesture-based face liveness (e.g. a very good
+deepfake) is a different kind of attack than one that also needs to produce a live, correctly-lip-synced
+reading of an unpredictable sentence. Neither is unbreakable alone; combined, the bar is
+meaningfully higher.</div>
+
+<div class="qa"><div class="q">Q: Is the voice check actually verifying <i>who</i> is speaking?</div>
+A: No — it verifies <i>that a live human</i> is speaking the specific sentence just issued. It's a
+liveness check, not speaker-recognition. We say this plainly; see Section 5.</div>
+
+<div class="qa"><div class="q">Q: What stops someone from using a second wallet to get a second
+token?</div>
+A: This is the one answer that changed from our last documentation. Previously: nothing did. Now:
+the backend compares a geometric descriptor of the face against every face already on file: if a
+new verification attempt's face is &ge;93% similar to one already registered under a <i>different</i>
+wallet, the mint is rejected with a 409 error naming the existing wallet. It isn't perfect — it's a
+lightweight geometric descriptor, not a production face-recognition model — but it directly
+addresses the gap, and the threshold/behavior is fully configurable
+(<code>ENABLE_FACE_DEDUP</code>, <code>FACE_MATCH_THRESHOLD</code>).</div>
+
+<div class="qa"><div class="q">Q: Where is my face or voice data stored?</div>
+A: Nowhere, as raw data. Camera and microphone processing both happen entirely on-device. The
+backend only ever receives: a wallet address, which gesture challenge was completed, a speech
+transcript (text, not audio), and a 45-number geometric descriptor (not an image). None of those
+can be turned back into a photo or an audio recording.</div>
+
+<div class="qa"><div class="q">Q: What if the face-match threshold produces a false positive — two
+different people incorrectly flagged as the same?</div>
+A: That's an honest, named limitation of using a lightweight geometric descriptor instead of a deep
+embedding model (Section 9) — it's a deliberate prototype-scope trade-off, and the threshold is a
+tunable config value specifically so it can be calibrated against real test data rather than
+hard-coded.</div>
+
+<div class="qa"><div class="q">Q: Why not trust the client's own "match: 92%" score instead of
+re-checking on the server?</div>
+A: Because the client is exactly what an attacker controls. The number shown while speaking is
+only a UX convenience; the actual pass/fail decision is always recomputed server-side against the
+sentence the server itself issued, using the server's own copy of the correct answer.</div>
+
+<div class="qa"><div class="q">Q: How did you test this?</div>
+A: 21 automated pytest cases covering the scoring math (text similarity, cosine similarity), the
+full <code>/verify</code> flow (success and failure paths), the anti-Sybil block/allow behavior
+specifically, and the dev/rehearsal endpoints — run against a temporary database with all real
+network and blockchain calls forced off, so the suite is fast, repeatable, and never touches real
+funds or a real Pinata account.</div>
+
+<div class="qa"><div class="q">Q: Where does this run — is it hosted anywhere?</div>
+A: The frontend is deployable to Vercel's free tier; the backend to Render's free tier. See Section
+12 for the exact setup and its one honest caveat (free-tier disk persistence).</div>
+
+<p style="font-size:9.5pt;color:#666;">(All questions from the original explainer's Section 10 —
+photo spoofing, where face data is stored, what stops transfers, why Polygon, centralization of the
+minter, gas — still apply unchanged and remain good answers.)</p>
+
+<!-- ===================== 12 ===================== -->
+<h2>12. Where it's hosted</h2>
+<p>Two free services, connected to the same GitHub repo so both redeploy automatically on every
+push:</p>
+<table>
+<tr><th>Piece</th><th>Host</th><th>Why that host</th></tr>
+<tr><td>Frontend</td><td>Vercel (free)</td><td>Static Vite build + global CDN — exactly what
+Vercel is built for, zero config.</td></tr>
+<tr><td>Backend</td><td>Render (free)</td><td>A real, persistently-running server — required
+because the face registry is a local SQLite file, which needs a machine that stays up. Serverless
+platforms like Vercel's Python functions don't guarantee that between invocations.</td></tr>
+</table>
+<div class="upfront">
+<div class="label">Be upfront about this if asked</div>
+Render's free web service spins down after ~15 minutes idle and cold-starts (30–50s) on the next
+request. The face registry's disk is not guaranteed to survive that cycle on the free plan — fine
+within one continuous demo session, not a guarantee across days without upgrading to a paid
+persistent disk or an external database. Full steps and this exact caveat are written out in
+<code>DEPLOYMENT.md</code> at the repo root.
+</div>
+
+<!-- ===================== 13 ===================== -->
+<h2>13. Glossary</h2>
+<p>Terms already defined in the original explainer (blockchain, wallet, testnet, smart contract,
+gas, NFT, ERC-721, Soulbound Token, EIP-5192, Sybil resistance, Proof of Personhood, liveness
+detection, challenge-response, MediaPipe, blendshape, on-device inference, IPFS, Pinata, FastAPI,
+Web3.py/ethers.js, MetaMask, environment variable, RPC) aren't repeated here. New terms:</p>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Web Speech API</td><td>A browser-native JavaScript API (best supported in Chrome) that
+transcribes live microphone audio to text without any server or library.</td></tr>
+<tr><td>Geometric face descriptor</td><td>A fixed-length list of numbers describing a face purely
+as distances between a handful of landmark points — simple and explainable, as opposed to a
+trained deep-learning embedding.</td></tr>
+<tr><td id="dice">Dice coefficient</td><td>A simple word-overlap formula for comparing two pieces
+of text; used here only for the live, cosmetic "match %" meter.</td></tr>
+<tr><td><code>difflib.SequenceMatcher</code></td><td>A character-level fuzzy text-matching tool
+built into Python's standard library; used server-side for the authoritative voice-match score.</td></tr>
+<tr><td>Cosine similarity</td><td>A standard measure of how similar two numeric vectors are,
+regardless of their overall scale/magnitude — used here to compare two face descriptors.</td></tr>
+<tr><td>Hermetic test</td><td>An automated test that never depends on real external services
+(network, blockchain, third-party APIs) — ours force IPFS/Pinata and blockchain calls off so the
+suite is fast and repeatable.</td></tr>
+<tr><td>pytest</td><td>The Python testing framework used for the backend's 21 automated tests.</td></tr>
+<tr><td>CORS (Cross-Origin Resource Sharing)</td><td>A browser security rule that blocks a web
+page from calling an API on a different domain unless that API explicitly allows it — why the
+backend keeps an <code>ALLOWED_ORIGINS</code> list.</td></tr>
+<tr><td>Vercel / Render</td><td>Hosting platforms used for the frontend and backend respectively
+(Section 12); both have free tiers used here.</td></tr>
+<tr><td>Idempotent</td><td>An operation that produces the same end result no matter how many
+times it's repeated — re-verifying the same wallet with the same face is treated this way (no
+error, no duplicate).</td></tr>
+</table>
+
+<div class="footer-note">
+Prepared as a study aid for the seminar defense — an update to the original Seminar Explainer.
+Read Sections 1, 5, 6, and 11 the night before; those carry the most weight for "why did you add
+this" and "what stops X" questions in a live Q&amp;A.
+</div>
+
+</body>
+</html>
