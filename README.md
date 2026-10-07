@@ -169,6 +169,13 @@ Pinata account, or the actual Polygon Amoy contract.
 
 ---
 
+## Hosting it publicly
+
+See [`DEPLOYMENT.md`](./DEPLOYMENT.md) — frontend on Vercel, backend on
+Render, both free tiers, no code changes needed beyond what's already here.
+
+---
+
 ## Project structure
 
 ```

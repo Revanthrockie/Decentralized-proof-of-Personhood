@@ -17,9 +17,16 @@ load_dotenv()
 
 app = FastAPI(title="Proof of Personhood API")
 
+# Local dev origins always allowed; add your deployed frontend's URL via
+# ALLOWED_ORIGINS (comma-separated) once it's hosted, e.g.
+# ALLOWED_ORIGINS=https://your-app.vercel.app
+_default_origins = ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]
+_extra_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+ALLOWED_ORIGINS = _default_origins + _extra_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
