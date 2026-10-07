@@ -2,16 +2,25 @@ import { useState, useCallback } from "react";
 import { ethers } from "ethers";
 import WalletConnect from "./components/WalletConnect.jsx";
 import ChallengeRecorder from "./components/ChallengeRecorder.jsx";
+import AudioChallengeRecorder from "./components/AudioChallengeRecorder.jsx";
 import VerificationBadge from "./components/VerificationBadge.jsx";
 import SoulboundABI from "./abi/SoulboundToken.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
+const STEPS = [
+  { key: "connect", label: "Connect" },
+  { key: "verify", label: "Face" },
+  { key: "audio", label: "Voice" },
+  { key: "processing", label: "Minting" },
+];
+
 export default function App() {
   const [account, setAccount] = useState(null);
   const [provider, setProvider] = useState(null);
-  const [step, setStep] = useState("connect"); // connect | check | verify | processing | done | already_verified
+  const [step, setStep] = useState("connect"); // connect | verify | audio | processing | done | already_verified
+  const [visualResult, setVisualResult] = useState(null); // { challengeId, embedding }
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -37,6 +46,12 @@ export default function App() {
     }
 
     setStep("verify");
+  }, []);
+
+  const handleVisualComplete = useCallback((visualChallengeResult) => {
+    setVisualResult(visualChallengeResult);
+    setError(null);
+    setStep("audio");
   }, []);
 
   const handleVerificationComplete = useCallback((verifyResult) => {
@@ -75,12 +90,8 @@ export default function App() {
           {/* Steps indicator */}
           {step !== "done" && step !== "already_verified" && (
             <div className="flex items-center justify-center mb-10">
-              {[
-                { key: "connect", label: "Connect" },
-                { key: "verify", label: "Verify" },
-                { key: "processing", label: "Minting" },
-              ].map(({ key, label }, i) => {
-                const stepIndex = ["connect", "verify", "processing"].indexOf(step);
+              {STEPS.map(({ key, label }, i) => {
+                const stepIndex = STEPS.findIndex((s) => s.key === step);
                 const isActive = i === stepIndex;
                 const isDone = i < stepIndex;
                 return (
@@ -101,8 +112,8 @@ export default function App() {
                         {label}
                       </span>
                     </div>
-                    {i < 2 && (
-                      <div className={`w-16 h-px mx-2 mb-5 ${i < stepIndex ? "bg-indigo-600" : "bg-gray-700"}`} />
+                    {i < STEPS.length - 1 && (
+                      <div className={`w-12 h-px mx-2 mb-5 ${i < stepIndex ? "bg-indigo-600" : "bg-gray-700"}`} />
                     )}
                   </div>
                 );
@@ -124,8 +135,18 @@ export default function App() {
 
           {step === "verify" && (
             <ChallengeRecorder
+              backendUrl={BACKEND_URL}
+              onChallengeComplete={handleVisualComplete}
+              onError={handleError}
+            />
+          )}
+
+          {step === "audio" && (
+            <AudioChallengeRecorder
               account={account}
               backendUrl={BACKEND_URL}
+              visualChallengeId={visualResult?.challengeId}
+              faceEmbedding={visualResult?.embedding}
               onComplete={handleVerificationComplete}
               onError={handleError}
               onProcessing={() => { setError(null); setStep("processing"); }}
@@ -159,7 +180,7 @@ export default function App() {
       </main>
 
       <footer className="text-center py-4 text-xs text-gray-700">
-        Polygon Amoy Testnet · MediaPipe On-Device Detection · IPFS via Pinata
+        Polygon Amoy Testnet · MediaPipe Face + Voice Liveness · IPFS via Pinata
       </footer>
     </div>
   );

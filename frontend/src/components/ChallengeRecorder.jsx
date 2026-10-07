@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
+import { computeFaceEmbedding } from "../lib/faceEmbedding.js";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.20/wasm";
 const MODEL_URL =
@@ -136,7 +137,7 @@ function makeDetector(challengeId) {
   }
 }
 
-export default function ChallengeRecorder({ account, backendUrl, onComplete, onError, onProcessing }) {
+export default function ChallengeRecorder({ backendUrl, onChallengeComplete, onError }) {
   const [challenge, setChallenge] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | detecting | submitting
   const [progress, setProgress] = useState(0);
@@ -154,7 +155,7 @@ export default function ChallengeRecorder({ account, backendUrl, onComplete, onE
   const rafRef = useRef(null);
   const streamRef = useRef(null);
   const doneRef = useRef(false);
-  const submitRef = useRef(null);
+  const lastEmbeddingRef = useRef(null); // latest geometric face descriptor seen
 
   useEffect(() => {
     let cancelled = false;
@@ -202,24 +203,6 @@ export default function ChallengeRecorder({ account, backendUrl, onComplete, onE
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
-  // Keep submitRef pointing at latest handleSubmit
-  const handleSubmit = useCallback(async () => {
-    onProcessing();
-    try {
-      const form = new FormData();
-      form.append("wallet_address", account);
-      form.append("challenge", challenge?.id ?? "unknown");
-      const res = await axios.post(`${backendUrl}/verify`, form);
-      onComplete(res.data);
-    } catch (err) {
-      onError(err.response?.data?.detail || "Verification failed. Please try again.");
-      setStatus("ready");
-      doneRef.current = false;
-    }
-  }, [account, backendUrl, challenge, onComplete, onError, onProcessing]);
-
-  useEffect(() => { submitRef.current = handleSubmit; }, [handleSubmit]);
-
   const runLoop = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -254,6 +237,11 @@ export default function ChallengeRecorder({ account, backendUrl, onComplete, onE
       const du = drawingUtilsRef.current;
       const FL = FLRef.current;
 
+      // Keep a rolling snapshot of the face descriptor — used once the
+      // challenge completes, as part of the anti-Sybil duplicate check.
+      const embedding = computeFaceEmbedding(lm);
+      if (embedding) lastEmbeddingRef.current = embedding;
+
       if (du && FL) {
         du.drawConnectors(lm, FL.FACE_LANDMARKS_TESSELATION, { color: "#30304035", lineWidth: 1 });
         du.drawConnectors(lm, FL.FACE_LANDMARKS_LEFT_EYE, { color: "#818CF8", lineWidth: 2 });
@@ -270,7 +258,10 @@ export default function ChallengeRecorder({ account, backendUrl, onComplete, onE
           doneRef.current = true;
           setStatus("submitting");
           stopCamera();
-          submitRef.current?.();
+          onChallengeComplete({
+            challengeId: challenge?.id ?? "unknown",
+            embedding: lastEmbeddingRef.current,
+          });
           return;
         }
       }
@@ -280,7 +271,7 @@ export default function ChallengeRecorder({ account, backendUrl, onComplete, onE
     }
 
     rafRef.current = requestAnimationFrame(runLoop);
-  }, [stopCamera]);
+  }, [stopCamera, challenge, onChallengeComplete]);
 
   const startDetection = useCallback(async () => {
     try {
@@ -397,8 +388,8 @@ export default function ChallengeRecorder({ account, backendUrl, onComplete, onE
             {status === "submitting" && (
               <div className="text-center">
                 <div className="text-7xl mb-4">✅</div>
-                <div className="text-white font-bold text-2xl mb-2">Challenge complete!</div>
-                <div className="text-gray-300 text-sm">Minting your Soulbound Token…</div>
+                <div className="text-white font-bold text-2xl mb-2">Face challenge complete!</div>
+                <div className="text-gray-300 text-sm">Moving on to voice verification…</div>
               </div>
             )}
           </div>

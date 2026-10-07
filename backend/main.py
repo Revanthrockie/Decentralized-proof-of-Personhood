@@ -1,7 +1,12 @@
+import difflib
+import json
+import math
 import os
 import random
+import sqlite3
 import requests
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +39,21 @@ CONTRACT_ADDRESS = (
 _raw_key = os.getenv("MINTER_PRIVATE_KEY", "")
 PRIVATE_KEY = _raw_key if _raw_key and not _raw_key.startswith("your_") else None
 
+# --- Anti-Sybil / multi-modal liveness config -------------------------------
+# One human = one Soulbound Token is the entire point of this project, so
+# instead of letting a wallet mint more than once, we detect "is this the
+# same human who already holds a token, just connecting a new wallet?" via a
+# lightweight on-device face descriptor, and refuse a second mint if so.
+# This can be switched off for local rehearsal; keep it on for the real demo.
+ENABLE_FACE_DEDUP = os.getenv("ENABLE_FACE_DEDUP", "true").lower() == "true"
+# Lets the team wipe the local face registry between rehearsal runs. Off by
+# default — flip it on only on your own dev machine, never in a real deploy.
+ALLOW_DEMO_RESET = os.getenv("ALLOW_DEMO_RESET", "false").lower() == "true"
+FACE_MATCH_THRESHOLD = float(os.getenv("FACE_MATCH_THRESHOLD", "0.93"))
+AUDIO_MATCH_THRESHOLD = float(os.getenv("AUDIO_MATCH_THRESHOLD", "0.65"))
+
+REGISTRY_DB_PATH = Path(__file__).parent / "pop_registry.db"
+
 CONTRACT_ABI = [
     {
         "inputs": [
@@ -64,6 +84,89 @@ CHALLENGES = [
     {"id": "lookup",  "text": "Look up, then look down slowly"},
 ]
 
+# Random sentences for the voice-liveness challenge. Kept short (under ~12
+# words) so reading them aloud takes a few seconds, and varied in wording so
+# a pre-recorded clip from a different challenge won't pass by accident.
+AUDIO_SENTENCES = [
+    {"id": "s1", "text": "The quick brown fox jumps over the lazy dog near the river."},
+    {"id": "s2", "text": "Blockchain technology enables secure and transparent digital identity."},
+    {"id": "s3", "text": "Please verify that I am a real human being right now."},
+    {"id": "s4", "text": "Sunlight filtered gently through the tall green trees today."},
+    {"id": "s5", "text": "Proof of personhood protects online systems from fake accounts."},
+    {"id": "s6", "text": "A gentle breeze moved softly across the quiet morning field."},
+    {"id": "s7", "text": "My voice and my face together confirm that I am unique."},
+    {"id": "s8", "text": "Honesty and curiosity are the foundation of good engineering."},
+]
+
+
+# --- Local registry (SQLite) -------------------------------------------------
+# Stores only a geometric face descriptor (a vector of normalized distances
+# between facial landmarks) per wallet — never a photo, video, or audio
+# recording. Used solely to answer "has this face already claimed a token?".
+
+def get_registry_db():
+    conn = sqlite3.connect(REGISTRY_DB_PATH)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS face_registry (
+            wallet_address TEXT PRIMARY KEY,
+            embedding      TEXT NOT NULL,
+            created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """
+    )
+    return conn
+
+
+def _normalize_text(text: str) -> str:
+    return "".join(ch.lower() for ch in text if ch.isalnum() or ch.isspace()).strip()
+
+
+def _text_similarity(spoken: str, expected: str) -> float:
+    """Fuzzy match ratio (0-1) between what was transcribed and the prompted
+    sentence. Tolerant of small ASR mistakes but not a blank/garbage answer."""
+    return difflib.SequenceMatcher(None, _normalize_text(spoken), _normalize_text(expected)).ratio()
+
+
+def _cosine_similarity(a, b):
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(y * y for y in b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
+def _find_face_match(embedding):
+    """Returns (wallet_address, similarity) for the closest registered face
+    at/above FACE_MATCH_THRESHOLD, or None if nobody matches closely enough."""
+    conn = get_registry_db()
+    rows = conn.execute("SELECT wallet_address, embedding FROM face_registry").fetchall()
+    conn.close()
+    best = None
+    for wallet, embedding_json in rows:
+        try:
+            stored = json.loads(embedding_json)
+        except json.JSONDecodeError:
+            continue
+        similarity = _cosine_similarity(embedding, stored)
+        if similarity >= FACE_MATCH_THRESHOLD and (best is None or similarity > best[1]):
+            best = (wallet, similarity)
+    return best
+
+
+def _register_face(wallet_address: str, embedding) -> None:
+    conn = get_registry_db()
+    conn.execute(
+        "INSERT INTO face_registry (wallet_address, embedding) VALUES (?, ?) "
+        "ON CONFLICT(wallet_address) DO UPDATE SET embedding = excluded.embedding",
+        (wallet_address, json.dumps(embedding)),
+    )
+    conn.commit()
+    conn.close()
+
 
 @app.get("/")
 def root():
@@ -76,10 +179,19 @@ def get_challenge():
     return {"id": c["id"], "text": c["text"]}
 
 
+@app.get("/challenge/audio")
+def get_audio_challenge():
+    s = random.choice(AUDIO_SENTENCES)
+    return {"id": s["id"], "text": s["text"]}
+
+
 @app.post("/verify")
 async def verify(
     wallet_address: str = Form(...),
     challenge: str = Form(...),
+    audio_sentence_id: str = Form(None),
+    audio_transcript: str = Form(None),
+    face_embedding: str = Form(None),  # JSON-encoded list of floats, see faceEmbedding.js
 ):
     if not Web3.is_address(wallet_address):
         raise HTTPException(status_code=400, detail="Invalid wallet address")
@@ -99,12 +211,55 @@ async def verify(
         except Exception:
             pass
 
+    # --- Voice liveness: re-check server-side, never trust the client's own
+    # match score. The client sends back what it transcribed; we re-score it
+    # against the sentence we actually issued.
+    audio_score = None
+    if audio_sentence_id:
+        expected = next((s["text"] for s in AUDIO_SENTENCES if s["id"] == audio_sentence_id), None)
+        if expected is None:
+            raise HTTPException(status_code=400, detail="Unknown audio challenge id")
+        audio_score = _text_similarity(audio_transcript or "", expected)
+        if audio_score < AUDIO_MATCH_THRESHOLD:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Voice verification failed (transcript matched {audio_score:.0%} of the "
+                       f"prompted sentence). Please read it clearly and try again.",
+            )
+
+    # --- Anti-Sybil face check: same human, different wallet? -------------
+    embedding = None
+    if face_embedding:
+        try:
+            embedding = json.loads(face_embedding)
+        except json.JSONDecodeError:
+            embedding = None
+
+    face_match = _find_face_match(embedding) if (ENABLE_FACE_DEDUP and embedding) else None
+    if face_match and face_match[0] != wallet_address:
+        matched_wallet, similarity = face_match
+        raise HTTPException(
+            status_code=409,
+            detail=f"A Soulbound Token already exists for this face "
+                   f"({matched_wallet[:6]}…{matched_wallet[-4:]}, {similarity:.0%} match). "
+                   f"Proof of Personhood issues one token per unique human — connect that "
+                   f"wallet instead, or use the recovery flow if you've lost access to it.",
+        )
+
     # Liveness verified client-side via MediaPipe on-device face detection
+    # (+ voice sentence match above, re-verified server-side).
     ipfs_uri = _pin_metadata_to_ipfs(wallet_address, challenge)
 
     tx_hash = None
     if CONTRACT_ADDRESS and PRIVATE_KEY:
         tx_hash = _mint_sbt(wallet_address, ipfs_uri)
+
+    if embedding and ENABLE_FACE_DEDUP:
+        _register_face(wallet_address, embedding)
+
+    explanation = f"Liveness verified on-device via MediaPipe face detection. Challenge completed: {challenge}."
+    if audio_score is not None:
+        explanation += f" Voice challenge passed ({audio_score:.0%} transcript match)."
 
     return {
         "success": True,
@@ -112,7 +267,44 @@ async def verify(
         "message": "Verification passed! Soulbound Token minted." if tx_hash else "Verification passed!",
         "ipfs_uri": ipfs_uri,
         "tx_hash": tx_hash,
-        "ai_explanation": f"Liveness verified on-device via MediaPipe face detection. Challenge completed: {challenge}.",
+        "ai_explanation": explanation,
+    }
+
+
+@app.post("/dev/reset-face-registry")
+def reset_face_registry():
+    """Rehearsal-only utility: wipes the local face-duplicate registry so the
+    team can re-run the demo end-to-end without tripping their own earlier
+    test mints. Disabled unless ALLOW_DEMO_RESET=true in backend/.env.
+    Does NOT touch the blockchain — a wallet that already has an on-chain
+    Soulbound Token still can't mint a second one; use a fresh test wallet
+    for that part of a rehearsal."""
+    if not ALLOW_DEMO_RESET:
+        raise HTTPException(
+            status_code=403,
+            detail="Demo reset is disabled. Set ALLOW_DEMO_RESET=true in backend/.env "
+                   "to enable it on your own rehearsal machine.",
+        )
+    conn = get_registry_db()
+    conn.execute("DELETE FROM face_registry")
+    conn.commit()
+    conn.close()
+    return {"success": True, "message": "Face registry cleared for rehearsal."}
+
+
+@app.get("/dev/face-registry-status")
+def face_registry_status():
+    """Read-only: how many faces are registered, and the threshold in use —
+    handy for calibrating FACE_MATCH_THRESHOLD before a demo."""
+    conn = get_registry_db()
+    count = conn.execute("SELECT COUNT(*) FROM face_registry").fetchone()[0]
+    conn.close()
+    return {
+        "enabled": ENABLE_FACE_DEDUP,
+        "registered_faces": count,
+        "face_match_threshold": FACE_MATCH_THRESHOLD,
+        "audio_match_threshold": AUDIO_MATCH_THRESHOLD,
+        "demo_reset_allowed": ALLOW_DEMO_RESET,
     }
 
 

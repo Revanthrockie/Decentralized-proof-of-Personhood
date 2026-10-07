@@ -8,6 +8,11 @@ backend/venv/
 backend/__pycache__/
 backend/*.pyc
 __pycache__/
+.pytest_cache/
+backend/tests/__pycache__/
+
+# Local face-duplicate registry (runtime data, never commit real face data)
+backend/pop_registry.db
 
 # Node
 frontend/node_modules/

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audio Liveness Module — Progress &amp; References</title>
+<style>
+    @page { size: A4; margin: 25mm 20mm; }
+    * { box-sizing: border-box; }
+    body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        color: #111;
+        max-width: 760px;
+        margin: 0 auto;
+    }
+    h1 {
+        font-size: 18pt;
+        text-align: center;
+        margin-bottom: 2px;
+    }
+    .subtitle {
+        text-align: center;
+        font-size: 12pt;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    .meta {
+        text-align: center;
+        font-size: 10.5pt;
+        color: #444;
+        margin-bottom: 26px;
+    }
+    h2 {
+        font-size: 14pt;
+        border-bottom: 1.5px solid #222;
+        padding-bottom: 4px;
+        margin-top: 34px;
+        margin-bottom: 12px;
+    }
+    h3 {
+        font-size: 12.5pt;
+        margin-top: 20px;
+        margin-bottom: 8px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10.5pt;
+        margin-bottom: 14px;
+    }
+    th, td {
+        border: 1px solid #999;
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+    }
+    th { background: #eee; font-weight: 700; }
+    p { margin: 8px 0; text-align: justify; }
+    ul, ol { margin: 8px 0; padding-left: 22px; }
+    li { margin-bottom: 4px; }
+    .status-done { font-weight: 700; }
+    .ref-list { list-style: none; padding-left: 0; }
+    .ref-list li {
+        margin-bottom: 10px;
+        padding-left: 2.2em;
+        text-indent: -2.2em;
+    }
+    .note {
+        font-size: 10.5pt;
+        color: #333;
+        background: #f4f4f4;
+        border-left: 3px solid #666;
+        padding: 8px 12px;
+        margin-top: 10px;
+    }
+    .footer {
+        margin-top: 40px;
+        font-size: 9.5pt;
+        color: #666;
+        text-align: center;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Decentralized Proof of Personhood</h1>
+<div class="subtitle">Audio Liveness Challenge Module — Work Completed / Progress &amp; References</div>
+<div class="meta">Team 14 — Revanth, Shashank, Ajay, Chinmayee &middot; VTU B.E. Project, SKIT 2025–26</div>
+
+<h2>Work Completed / Progress</h2>
+
+<h3>Modules Completed</h3>
+<table>
+<tr><th>#</th><th>Module</th><th>Stack</th><th>Status</th></tr>
+<tr><td>1</td><td>Smart Contract (Soulbound Token)</td><td>Solidity, Hardhat, OpenZeppelin (ERC-721 + EIP-5192)</td>
+<td class="status-done">Complete.</td></tr>
+<tr><td>2</td><td>Backend Verification API</td><td>Python, FastAPI, web3.py</td>
+<td class="status-done">Complete.</td></tr>
+<tr><td>3</td><td>IPFS Metadata Pinning</td><td>Pinata API</td>
+<td class="status-done">Complete</td></tr>
+<tr><td>4</td><td>Frontend — Wallet Connect</td><td>React, Vite, ethers.js</td>
+<td class="status-done">Complete.</td></tr>
+<tr><td>5</td><td>Frontend — Visual Liveness Challenge</td><td>MediaPipe Face Landmarker (on-device, WASM/GPU)</td>
+<td class="status-done">Complete</td></tr>
+<tr><td>6</td><td>Frontend — Result / Badge Screen</td><td>React</td>
+<td class="status-done">Complete.</td></tr>
+<tr><td>7</td><td><strong>Audio Liveness Challenge (random sentence read-aloud)</strong></td>
+<td>Web Audio API / MediaRecorder + ASR</td>
+<td><strong>Not yet implemented — design stage.</strong></td></tr>
+</table>
+
+<h3>Current Implementation Status</h3>
+<p>
+The visual (gesture-based) liveness pipeline and the full mint pipeline
+(challenge &rarr; verify &rarr; IPFS &rarr; Soulbound Token) are functional
+end-to-end and demo-able today. The system currently supports one liveness
+modality (vision); this phase adds a second, independent modality (voice),
+following the same "nothing leaves the device unverified" design principle
+already used for the camera flow.
+</p>
+<p>Planned implementation, which slots directly into the existing architecture:</p>
+<ul>
+    <li><strong>Backend:</strong> extend the <code>CHALLENGES</code> list with an
+        <code>audio</code> type carrying a randomly selected sentence; add a
+        verification step that runs speech-to-text on the submitted clip and
+        scores it against the prompted sentence (word-error-rate / edit-distance
+        threshold) plus basic replay/spoof heuristics (spectral flatness,
+        compression-artifact and energy-variance checks) before authorizing a
+        mint &mdash; mirroring how the <code>verify</code> endpoint already gates
+        on the visual challenge.</li>
+    <li><strong>Frontend:</strong> a new <code>AudioChallengeRecorder.jsx</code>
+        component (parallel to the existing <code>ChallengeRecorder.jsx</code>)
+        to capture the mic clip, show a waveform/recording indicator, and submit
+        it alongside the wallet address.</li>
+    <li><strong>Privacy stance:</strong> transcription/scoring is intended to run
+        within the request cycle and discard the raw audio immediately after
+        scoring (not persisted), consistent with the project's no-raw-biometric-storage
+        claim.</li>
+</ul>
+<p>
+<strong>Current status:</strong> architecture and approach finalized;
+implementation in progress, targeting the same two integration points
+(<code>/challenge</code>, <code>/verify</code>) used by the visual flow.
+</p>
+
+<h2>References</h2>
+
+<h3>Core anti-spoofing / voice liveness literature</h3>
+<ol class="ref-list">
+<li>[1] N. Evans, T. Kinnunen, and J. Yamagishi, &ldquo;Spoofing and countermeasures for automatic speaker verification,&rdquo; in <em>Proc. Interspeech</em>, 2013, pp. 925&ndash;929.</li>
+<li>[2] Z. Wu, N. Evans, T. Kinnunen, J. Yamagishi, F. Alegre, and H. Li, &ldquo;Spoofing and countermeasures for speaker verification: A survey,&rdquo; <em>Speech Communication</em>, vol. 66, pp. 130&ndash;153, 2015.</li>
+<li>[3] Z. Wu <em>et al.</em>, &ldquo;ASVspoof: The automatic speaker verification spoofing and countermeasures challenge,&rdquo; <em>IEEE J. Sel. Topics Signal Process.</em>, vol. 11, no. 4, pp. 588&ndash;604, Jun. 2017.</li>
+<li>[4] T. Kinnunen <em>et al.</em>, &ldquo;The ASVspoof 2017 challenge: Assessing the limits of replay spoofing attack detection,&rdquo; in <em>Proc. Interspeech</em>, 2017, pp. 2&ndash;6.</li>
+<li>[5] X. Wang, J. Yamagishi, <em>et al.</em>, &ldquo;ASVspoof 2019: A large-scale public database of synthesized, converted and replayed speech,&rdquo; <em>Computer Speech &amp; Language</em>, vol. 64, 2020, Art. no. 101114.</li>
+<li>[6] M. Todisco, H. Delgado, and N. Evans, &ldquo;Constant Q cepstral coefficients: A spoofing countermeasure for automatic speaker verification,&rdquo; <em>Computer Speech &amp; Language</em>, vol. 45, pp. 516&ndash;535, 2017.</li>
+</ol>
+
+<h3>Text-dependent / text-prompted verification (random sentence read-aloud)</h3>
+<ol class="ref-list" start="7">
+<li>[7] A. Larcher, K. A. Lee, B. Ma, and H. Li, &ldquo;Text-dependent speaker verification: Classifiers, databases and RSR2015,&rdquo; <em>Speech Communication</em>, vol. 60, pp. 56&ndash;77, 2014.</li>
+<li>[8] K. A. Lee <em>et al.</em>, &ldquo;The RedDots data collection for speaker recognition,&rdquo; in <em>Proc. Interspeech</em>, 2015, pp. 2996&ndash;3000.</li>
+</ol>
+
+<h3>Datasets</h3>
+<ol class="ref-list" start="9">
+<li>[9] A. Nagrani, J. S. Chung, and A. Zisserman, &ldquo;VoxCeleb: A large-scale speaker identification dataset,&rdquo; in <em>Proc. Interspeech</em>, 2017, pp. 2616&ndash;2620.</li>
+<li>[10] V. Panayotov, G. Chen, D. Povey, and S. Khudanpur, &ldquo;Librispeech: An ASR corpus based on public domain audio books,&rdquo; in <em>Proc. IEEE ICASSP</em>, 2015, pp. 5206&ndash;5210.</li>
+</ol>
+
+<h3>Speech-to-text engine (for the sentence-match check itself)</h3>
+<ol class="ref-list" start="11">
+<li>[11] A. Radford, J. W. Kim, T. Xu, G. Brockman, C. McLeavey, and I. Sutskever, &ldquo;Robust speech recognition via large-scale weak supervision,&rdquo; <em>arXiv preprint arXiv:2212.04356</em>, 2022.</li>
+</ol>
+
+<div class="note">
+<strong>Relevant conferences/venues</strong> (where references [1]&ndash;[8] above were
+published, useful for a "field of application" line in the report): Interspeech,
+IEEE ICASSP, The Speaker and Language Recognition Workshop (Odyssey), and the
+IEEE International Joint Conference on Biometrics (IJCB).
+</div>
+
+<div class="footer">
+Proof of Personhood &middot; Department of CSE, SKIT, Bengaluru &middot; VTU, Belagavi
+</div>
+
+</body>
+</html>
